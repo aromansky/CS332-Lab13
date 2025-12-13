@@ -7,9 +7,13 @@
 Model::~Model() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    if (instanceVBO != 0) {
+        glDeleteBuffers(1, &instanceVBO);
+    }
 }
 
 Model::Model(const char* path) {
+    instanceVBO = 0;
     loadModel(path);
     setupMesh();
 }
@@ -22,6 +26,44 @@ void Model::draw() {
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
+}
+
+void Model::drawInstanced(GLuint instanceCount) {
+    if (vertices.empty()) {
+        std::cerr << "ERROR::MODEL::DRAW_INSTANCED: Model vertices are empty. Check OBJ loading." << std::endl;
+        return;
+    }
+
+    if (instanceVBO == 0) {
+        std::cerr << "ERROR::MODEL::DRAW_INSTANCED: Instance buffer not setup." << std::endl;
+        return;
+    }
+
+    glBindVertexArray(VAO);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, vertices.size(), instanceCount);
+    glBindVertexArray(0);
+}
+
+void Model::setupInstanceBuffer(const std::vector<glm::mat4>& matrices) {
+    if (instanceVBO == 0) {
+        glGenBuffers(1, &instanceVBO);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, matrices.size() * sizeof(glm::mat4), matrices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+
+    size_t vec4Size = sizeof(glm::vec4);
+    for (int i = 0; i < 4; ++i) {
+        glEnableVertexAttribArray(2 + i);
+        glVertexAttribPointer(2 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * vec4Size));
+        glVertexAttribDivisor(2 + i, 1);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 

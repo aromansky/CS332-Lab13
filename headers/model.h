@@ -21,9 +21,11 @@ public:
     ~Model();
 
     void draw();
+    void drawInstanced(GLuint instanceCount);
+    void setupInstanceBuffer(const std::vector<glm::mat4>& matrices);
 
 private:
-    GLuint VAO, VBO;
+    GLuint VAO, VBO, instanceVBO;
 
     std::vector<Vertex> vertices;
 

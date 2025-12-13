@@ -5,6 +5,7 @@
 SolarSystem::SolarSystem(Shader* shader, Model* model)
     : m_shader(shader), m_model(model) {
     initializeSystem();
+    instanceMatrices.resize(m_planets.size());
 }
 
 SolarSystem::~SolarSystem() {
@@ -58,8 +59,8 @@ void SolarSystem::update(float deltaTime) {
     m_sun.ModelMatrix = glm::rotate(m_sun.ModelMatrix, glm::radians(m_sun.RotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
     m_sun.ModelMatrix = glm::rotate(m_sun.ModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-
-    for (CelestialBody& p : m_planets) {
+    for (size_t i = 0; i < m_planets.size(); ++i) {
+        CelestialBody& p = m_planets[i];
         p.OrbitAngle += p.OrbitSpeed * deltaTime;
 
         p.Position.x = p.OrbitRadius * cos(glm::radians(p.OrbitAngle));
@@ -73,23 +74,28 @@ void SolarSystem::update(float deltaTime) {
         model = glm::scale(model, glm::vec3(p.Scale));
 
         p.ModelMatrix = model;
+        instanceMatrices[i] = model;
     }
+
+    m_model->setupInstanceBuffer(instanceMatrices);
 }
 
 void SolarSystem::draw() {
     m_shader->use();
 
-    if (m_sun.texture) {
-        m_sun.texture->bind(0);
-        m_shader->setMat4("model", m_sun.ModelMatrix);
-        m_model->draw();
+    // Рендеринг Солнца
+    m_sun.texture->bind(0);
+    m_shader->setMat4("model", m_sun.ModelMatrix);
+    m_shader->setBool("useInstanceMatrix", false);
+    m_model->draw();
+
+    // Рендеринг планет
+    m_shader->setBool("useInstanceMatrix", true);
+    m_model->setupInstanceBuffer(instanceMatrices);
+    
+    for (size_t i = 0; i < m_planets.size(); ++i) {
+        m_planets[i].texture->bind(0);
     }
 
-    for (const CelestialBody& p : m_planets) {
-        if (p.texture) {
-            p.texture->bind(0);
-            m_shader->setMat4("model", p.ModelMatrix);
-            m_model->draw();
-        }
-    }
+    m_model->drawInstanced(static_cast<GLuint>(m_planets.size()));
 }

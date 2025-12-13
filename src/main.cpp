@@ -1,14 +1,16 @@
 ﻿#include <iostream>
-#include <GL/glew.h>
-#include <SFML/Window.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <SFML/Graphics.hpp>
+
 
 #include "../headers/shader.h"
 #include "../headers/model.h"
 #include "../headers/camera.h"
 #include "../headers/solar_system.h"
+
+#include <GL/glew.h>
+#include <SFML/Window.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <SFML/Graphics.hpp>
 
 const GLuint SCR_WIDTH = 1280;
 const GLuint SCR_HEIGHT = 720;
@@ -38,8 +40,8 @@ void processInput(sf::Keyboard::Key key, float dt) {
 
 void updateMouseMovement(sf::RenderWindow& window, float xCenter, float yCenter) {
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    float xpos = (float)mousePos.x;
-    float ypos = (float)mousePos.y;
+    float xpos = static_cast<float>(mousePos.x);
+    float ypos = static_cast<float>(mousePos.y);
 
     if (firstMouse) {
         lastX = xpos;
@@ -52,7 +54,7 @@ void updateMouseMovement(sf::RenderWindow& window, float xCenter, float yCenter)
 
     camera.processMouseMovement(xoffset, yoffset);
 
-    sf::Mouse::setPosition(sf::Vector2i(xCenter, yCenter), window);
+    sf::Mouse::setPosition(sf::Vector2i(static_cast<int>(xCenter), static_cast<int>(yCenter)), window);
     lastX = xCenter;
     lastY = yCenter;
 }
@@ -85,7 +87,7 @@ int main() {
     Model* model = new Model(modelPath);
     SolarSystem* solarSystem = new SolarSystem(shader, model);
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 0.1f, 500.0f);
     shader->use();
     shader->setMat4("projection", projection);
     shader->setInt("texture_diffuse", 0);
@@ -113,7 +115,7 @@ int main() {
 
             if (event.type == sf::Event::Resized) {
                 glViewport(0, 0, event.size.width, event.size.height);
-                projection = glm::perspective(glm::radians(camera.Zoom), (float)event.size.width / (float)event.size.height, 0.1f, 100.0f);
+                projection = glm::perspective(glm::radians(camera.Zoom), static_cast<float>(event.size.width) / static_cast<float>(event.size.height), 0.1f, 100.0f);
                 shader->use();
                 shader->setMat4("projection", projection);
             }

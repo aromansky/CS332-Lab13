@@ -1,8 +1,8 @@
 #pragma once
 
-#include "shader.h"
-#include "model.h"
-#include "texture.h"
+#include "../headers/shader.h"
+#include "../headers/model.h"
+#include "../headers/texture.h"
 
 #include <vector>
 #include <glm/glm.hpp>
@@ -27,7 +27,6 @@ public:
 
     SolarSystem(Shader* shader, Model* model);
 
-
     ~SolarSystem();
 
     void update(float deltaTime);
@@ -40,6 +39,8 @@ private:
 
     CelestialBody m_sun;
     std::vector<CelestialBody> m_planets;
+    
+    std::vector<glm::mat4> instanceMatrices;
 
     void initializeSystem();
 };
